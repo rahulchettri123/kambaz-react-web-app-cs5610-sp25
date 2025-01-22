@@ -1,11 +1,16 @@
-
+import Labs from "./Labs";
+import { HashRouter, Route, Routes, Navigate } from "react-router";
 function App() {
-
   return (
-    <>
-      <h1>Welcome to Full stack mern web application </h1>
-    </>
-  )
+    <HashRouter>
+      <div>
+        <Routes>
+          <Route path="/" element={<Navigate to="/Labs" />} />
+          <Route path="/Labs/*" element={<Labs />} />
+        </Routes>
+      </div>
+    </HashRouter>
+  );
 }
 
-export default App
+export default App;
