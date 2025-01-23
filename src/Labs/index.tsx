@@ -6,6 +6,18 @@ import TOC from "./TOC";
 export default function Labs() {
   return (
     <div>
+      <h1>Rahul Chettri</h1>
+      <h1>Email : chettri.ra@northeastern.edu</h1>
+      <h1>
+        <a
+          href="https://github.com/rahulchettri123/kambaz-react-web-app-cs5610-sp25"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Link to Kambaz React Web App - CS5610 SP25
+        </a>
+      </h1>
+
       <h1>Labs</h1>
       <TOC />
       <Routes>
