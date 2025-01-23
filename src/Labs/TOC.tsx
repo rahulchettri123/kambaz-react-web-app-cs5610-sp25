@@ -14,13 +14,18 @@ export default function TOC() {
         </Link>
       </li>
       <li>
-        <Link to="/Labs/Lab2" id="wd -a1">
+        <Link to="/Labs/Lab2" id="wd -a2">
           Lab 2
         </Link>
       </li>
       <li>
-        <Link to="/Labs/Lab3" id="wd -a1">
+        <Link to="/Labs/Lab3" id="wd -a3">
           Lab 3
+        </Link>
+      </li>
+      <li>
+        <Link to="/Kambaz" id="wd -a4">
+          Kambaz
         </Link>
       </li>
     </ul>
