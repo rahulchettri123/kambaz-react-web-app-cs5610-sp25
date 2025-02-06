@@ -1,18 +1,40 @@
-
+import  { useState } from "react";
+import { Button, Form, Container, Row, Col, InputGroup } from "react-bootstrap";
+import { BsCalendar } from "react-icons/bs";
+import Select from "react-select";
 
 export default function AssignmentEditor() {
-  return (
-    <div id="wd-assignments-editor">
-      <label htmlFor="wd-name">Assignment Name</label>
-      <input id="wd-name" type="text" value="A1 - ENV + HTML" readOnly />
-      <br />
-      <br />
+  const assignToOptions = [{ value: "everyone", label: "Everyone" }];
+  const [submissionType, setSubmissionType] = useState("Online");
+  const [entryOptions, setEntryOptions] = useState({
+    textEntry: false,
+    websiteURL: true, // Pre-checked option
+    mediaRecordings: false,
+    studentAnnotation: false,
+    fileUploads: false,
+  });
 
-      <textarea
-  id="wd-description"
-  rows={10} 
-  cols={50} 
-  defaultValue={`The assignment is available online.
+  function handleCheckboxChange(event: { target: { name: any; checked: any; }; }) {
+    const { name, checked } = event.target;
+    setEntryOptions((prev) => ({ ...prev, [name]: checked }));
+  }
+
+  return (
+    <Container className="mt-4">
+      <Form>
+        {/* Assignment Name */}
+        <Form.Group className="mb-3">
+          <Form.Label>Assignment Name</Form.Label>
+          <Form.Control type="text" defaultValue="A1 - ENV + HTML" />
+        </Form.Group>
+
+        {/* Description */}
+        <Form.Group className="mb-3">
+          <Form.Label>Description</Form.Label>
+          <Form.Control
+            as="textarea"
+            rows={6}
+            defaultValue={`The assignment is available online.
 
 Submit a link to the landing page of your Web application running on Netlify.
 
@@ -20,109 +42,133 @@ The landing page should include the following:
 - Your full name and section
 - Links to each of the lab assignments
 - Link to the Kanbas application
-- Links to all relevant source code repositories
+- Links to all relevant source code repositories`}
+          />
+        </Form.Group>
 
-The Kanbas application should include a link to navigate back to the landing page.`}
-/>
+        {/* Points, Assignment Group, Grade Display */}
+        <Row className="mb-3">
+          <Col md={4}>
+            <Form.Label>Points</Form.Label>
+            <Form.Control type="number" defaultValue={100} />
+          </Col>
+          <Col md={4}>
+            <Form.Label>Assignment Group</Form.Label>
+            <Form.Select defaultValue="ASSIGNMENTS">
+              <option value="ASSIGNMENTS">ASSIGNMENTS</option>
+              <option value="QUIZZES">QUIZZES</option>
+              <option value="EXAMS">EXAMS</option>
+            </Form.Select>
+          </Col>
+          <Col md={4}>
+            <Form.Label>Display Grade as</Form.Label>
+            <Form.Select defaultValue="Percentage">
+              <option value="Percentage">Percentage</option>
+              <option value="Points">Points</option>
+            </Form.Select>
+          </Col>
+        </Row>
 
-      <br />
-      <br />
+        {/* Submission Type & Online Entry Options */}
+        <Form.Group className="mb-3">
+          <Form.Label>Submission Type</Form.Label>
+          <Form.Select
+            value={submissionType}
+            onChange={(e) => setSubmissionType(e.target.value)}
+          >
+            <option value="Online">Online</option>
+            <option value="On Paper">On Paper</option>
+            <option value="No Submission">No Submission</option>
+          </Form.Select>
+        </Form.Group>
 
-      <table>
-        <tbody>
-          <tr>
-            <td align="right" valign="top">
-              <label htmlFor="wd-points">Points</label>
-            </td>
-            <td>
-              <input id="wd-points" type="number" value={100} readOnly />
-            </td>
-          </tr>
-          <tr>
-            <td align="right" valign="top">
-              <label htmlFor="wd-group">Assignment Group</label>
-            </td>
-            <td>
-              <select id="wd-group" defaultValue="ASSIGNMENTS">
-                <option value="ASSIGNMENTS">ASSIGNMENTS</option>
-                <option value="QUIZZES">QUIZZES</option>
-                <option value="EXAMS">EXAMS</option>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <td align="right" valign="top">
-              <label htmlFor="wd-grade-display">Display Grade as</label>
-            </td>
-            <td>
-              <select id="wd-grade-display" defaultValue="Percentage">
-                <option value="Percentage">Percentage</option>
-                <option value="Points">Points</option>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <td align="right" valign="top">
-              <label htmlFor="wd-submission">Submission Type</label>
-            </td>
-            <td>
-              <select id="wd-submission" defaultValue="Online">
-                <option value="Online">Online</option>
-                <option value="On Paper">On Paper</option>
-                <option value="No Submission">No Submission</option>
-              </select>
-              <div>
-                <label>
-                  <input type="checkbox" /> Text Entry
-                </label>
-                <br />
-                <label>
-                  <input type="checkbox" /> Website URL
-                </label>
-                <br />
-                <label>
-                  <input type="checkbox" /> Media Recordings
-                </label>
-                <br />
-                <label>
-                  <input type="checkbox" /> Student Annotation
-                </label>
-                <br />
-                <label>
-                  <input type="checkbox" /> File Uploads
-                </label>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td align="right" valign="top">
-              <label htmlFor="wd-due-date">Due</label>
-            </td>
-            <td>
-              <input id="wd-due-date" type="date" defaultValue="2024-05-13" />
-            </td>
-          </tr>
-          <tr>
-            <td align="right" valign="top">
-              <label htmlFor="wd-available-from">Available from</label>
-            </td>
-            <td>
-              <input id="wd-available-from" type="date" defaultValue="2024-05-06" />
-            </td>
-          </tr>
-          <tr>
-            <td align="right" valign="top">
-              <label htmlFor="wd-until">Until</label>
-            </td>
-            <td>
-              <input id="wd-until" type="date" defaultValue="2024-05-20" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <br />
-      <button>Cancel</button>
-      <button>Save</button>
-    </div>
+        {submissionType === "Online" && (
+          <Form.Group className="mb-3">
+            <strong className="d-block mb-2">Online Entry Options</strong>
+            <Form.Check
+              type="checkbox"
+              label="Text Entry"
+              name="textEntry"
+              checked={entryOptions.textEntry}
+              onChange={handleCheckboxChange}
+            />
+            <Form.Check
+              type="checkbox"
+              label="Website URL"
+              name="websiteURL"
+              checked={entryOptions.websiteURL}
+              onChange={handleCheckboxChange}
+            />
+            <Form.Check
+              type="checkbox"
+              label="Media Recordings"
+              name="mediaRecordings"
+              checked={entryOptions.mediaRecordings}
+              onChange={handleCheckboxChange}
+            />
+            <Form.Check
+              type="checkbox"
+              label="Student Annotation"
+              name="studentAnnotation"
+              checked={entryOptions.studentAnnotation}
+              onChange={handleCheckboxChange}
+            />
+            <Form.Check
+              type="checkbox"
+              label="File Uploads"
+              name="fileUploads"
+              checked={entryOptions.fileUploads}
+              onChange={handleCheckboxChange}
+            />
+          </Form.Group>
+        )}
+
+        {/* Assign To Section */}
+        <Form.Group className="mb-3">
+          <Form.Label>Assign to</Form.Label>
+          <Select options={assignToOptions} defaultValue={assignToOptions} isMulti />
+        </Form.Group>
+
+        {/* Due, Available From, Until Dates */}
+        <Row className="mb-3">
+          <Col md={12}>
+            <Form.Label>Due</Form.Label>
+            <InputGroup>
+              <Form.Control type="datetime-local" defaultValue="2024-05-13T23:59" />
+              <InputGroup.Text>
+                <BsCalendar />
+              </InputGroup.Text>
+            </InputGroup>
+          </Col>
+        </Row>
+
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Label>Available from</Form.Label>
+            <InputGroup>
+              <Form.Control type="datetime-local" defaultValue="2024-05-06T00:00" />
+              <InputGroup.Text>
+                <BsCalendar />
+              </InputGroup.Text>
+            </InputGroup>
+          </Col>
+          <Col md={6}>
+            <Form.Label>Until</Form.Label>
+            <InputGroup>
+              <Form.Control type="datetime-local" defaultValue="2024-05-20T00:00" />
+              <InputGroup.Text>
+                <BsCalendar />
+              </InputGroup.Text>
+            </InputGroup>
+          </Col>
+        </Row>
+
+        {/* Buttons */}
+        <div className="d-flex gap-2">
+          <Button variant="secondary">Cancel</Button>
+          <Button variant="danger">Save</Button>
+        </div>
+      </Form>
+    </Container>
   );
 }
