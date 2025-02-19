@@ -2,7 +2,8 @@ import  { useState } from "react";
 import { Button, Form, Container, Row, Col, InputGroup } from "react-bootstrap";
 import { BsCalendar } from "react-icons/bs";
 import Select from "react-select";
-
+import { db} from "../../Database";
+import { useParams } from "react-router-dom";
 export default function AssignmentEditor() {
   const assignToOptions = [{ value: "everyone", label: "Everyone" }];
   const [submissionType, setSubmissionType] = useState("Online");
@@ -14,6 +15,8 @@ export default function AssignmentEditor() {
     fileUploads: false,
   });
 
+  const{aid} = useParams();
+  const assignment = db.assignments.find((a: any) => a._id == aid);
   function handleCheckboxChange(event: { target: { name: any; checked: any; }; }) {
     const { name, checked } = event.target;
     setEntryOptions((prev) => ({ ...prev, [name]: checked }));
@@ -24,8 +27,9 @@ export default function AssignmentEditor() {
       <Form>
         {/* Assignment Name */}
         <Form.Group className="mb-3">
-          <Form.Label>Assignment Name</Form.Label>
-          <Form.Control type="text" defaultValue="A1 - ENV + HTML" />
+          
+          <input id = "wd-name"value = {assignment?.title} className="form-control" />
+          
         </Form.Group>
 
         {/* Description */}
@@ -34,15 +38,8 @@ export default function AssignmentEditor() {
           <Form.Control
             as="textarea"
             rows={6}
-            defaultValue={`The assignment is available online.
-
-Submit a link to the landing page of your Web application running on Netlify.
-
-The landing page should include the following:
-- Your full name and section
-- Links to each of the lab assignments
-- Link to the Kanbas application
-- Links to all relevant source code repositories`}
+            className="form-control"
+            value = {assignment?.description}
           />
         </Form.Group>
 
@@ -134,7 +131,7 @@ The landing page should include the following:
           <Col md={12}>
             <Form.Label>Due</Form.Label>
             <InputGroup>
-              <Form.Control type="datetime-local" defaultValue="2024-05-13T23:59" />
+              <Form.Control  value={assignment?.dueDate} />
               <InputGroup.Text>
                 <BsCalendar />
               </InputGroup.Text>
@@ -146,7 +143,7 @@ The landing page should include the following:
           <Col md={6}>
             <Form.Label>Available from</Form.Label>
             <InputGroup>
-              <Form.Control type="datetime-local" defaultValue="2024-05-06T00:00" />
+              <Form.Control  value={assignment?.availableDate} />
               <InputGroup.Text>
                 <BsCalendar />
               </InputGroup.Text>

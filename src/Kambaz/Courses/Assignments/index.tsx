@@ -1,39 +1,23 @@
-import { Button, Form, InputGroup, Card, ListGroup, Badge } from "react-bootstrap";
+import {
+  Button,
+  Form,
+  InputGroup,
+  Card,
+  ListGroup,
+  Badge,
+} from "react-bootstrap";
 import { BiSearch } from "react-icons/bi";
-
+import { db } from "../../Database";
 import { BsGripVertical, BsJournalText } from "react-icons/bs";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { TiArrowSortedDown } from "react-icons/ti";
 import ModuleControlButtons from "../../ModuleControlButtons";
-
-const assignments = [
-  {
-    id: 1,
-    title: "A1 - ENV + HTML",
-    availableDate: "May 6 at 12:00am",
-    dueDate: "May 13 at 11:59pm",
-    points: 100,
-    link: "#/Kambaz/Courses/1234/Assignments/123",
-  },
-  {
-    id: 2,
-    title: "A2 - CSS + BOOTSTRAP",
-    availableDate: "May 13 at 12:00am",
-    dueDate: "May 20 at 11:59pm",
-    points: 100,
-    link: "#/Kambaz/Courses/1234/Assignments/124",
-  },
-  {
-    id: 3,
-    title: "A3 - JAVASCRIPT + REACT",
-    availableDate: "May 20 at 12:00am",
-    dueDate: "May 27 at 11:59pm",
-    points: 100,
-    link: "#/Kambaz/Courses/1234/Assignments/125",
-  },
-];
+import { Link, useParams } from "react-router-dom";
 
 export default function Assignments() {
+  const { cid } = useParams()
+  const assignments = db.assignments.filter((a: any) => a.course === cid);
+ 
   return (
     <div className="container mt-4">
       {/* Top Controls */}
@@ -43,7 +27,10 @@ export default function Assignments() {
           <InputGroup.Text>
             <BiSearch />
           </InputGroup.Text>
-          <Form.Control placeholder="Search for Assignments" className="border rounded" />
+          <Form.Control
+            placeholder="Search for Assignments"
+            className="border rounded"
+          />
         </InputGroup>
 
         {/* Group Button */}
@@ -77,8 +64,11 @@ export default function Assignments() {
 
         {/* Assignments List */}
         <ListGroup variant="flush">
-          {assignments.map((assignment) => (
-            <ListGroup.Item key={assignment.id} className="d-flex align-items-center justify-content-between">
+          {assignments.map((assignment:any) => (
+            <ListGroup.Item as = {Link} to = {`/Kambaz/Courses/${cid}/Assignments/${assignment._id}`}
+              key={assignment._id}
+              className="d-flex align-items-center justify-content-between"
+            >
               {/* Left Side: Drag Icon & Book Icon */}
               <div className="d-flex align-items-center gap-2">
                 <BsGripVertical className="fs-5 text-muted" />
@@ -87,12 +77,13 @@ export default function Assignments() {
 
               {/* Middle Section: Assignment Details with Link */}
               <div className="flex-grow-1">
-                <a href={assignment.link} className="fw-bold text-dark text-decoration-none">
+               
                   {assignment.title}
-                </a>
+             
                 <div className="small text-muted">
-                  Multiple Modules | <strong>Not available until</strong> {assignment.availableDate} |{" "}
-                  <strong>Due</strong> {assignment.dueDate} | {assignment.points} pts
+                  Multiple Modules | <strong>Not available until</strong>{" "}
+                  {assignment.availableDate} | <strong>Due</strong>{" "}
+                  {assignment.dueDate} | {assignment.points} pts
                 </div>
               </div>
 
