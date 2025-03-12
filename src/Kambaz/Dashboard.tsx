@@ -1,5 +1,5 @@
 import { Button, Card, Col, Row, Modal } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link} from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useState } from "react";
 import { addEnrollment, removeEnrollment } from "./Courses/Enrollments/reducer";
@@ -19,7 +19,7 @@ export default function Dashboard({
   setCourse: (course: any) => void;
   updateCourse: (id: string) => void;
 }) {
-  const navigate = useNavigate();
+  
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const enrollments = useSelector((state: any) => state.enrollmentsReducer.enrollments);

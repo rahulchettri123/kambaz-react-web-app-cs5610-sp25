@@ -1,7 +1,7 @@
 import { Button,  FormControl } from "react-bootstrap";
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { setCurrentUser } from "./reducer";
 import { useDispatch } from "react-redux";
 import {db} from "../Database";
@@ -35,6 +35,5 @@ export default function Signin() {
              placeholder="password" type="password"/>
       <Button onClick={signin}
               variant="primary" className="w-100" > Sign in </Button>
-      <Link id="wd-signup-link"
-            to="/Kambaz/Account/Signup">Sign up</Link>
+      
     </div> );}
