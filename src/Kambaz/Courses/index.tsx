@@ -6,10 +6,10 @@ import Modules from "./Modules";
 import CoursesNavigation from "./Navigation";
 import { Navigate, Route, Routes, useLocation, useParams } from "react-router";
 import PeopleTable from "./People/Table";
-import { db } from "../Database";
-export default function Courses() {
+// import { db } from "../Database";
+export default function Courses({courses}: {courses: any[]}) {
   const { cid } = useParams();
-  const course = db.courses.find((c: any) => c._id == cid);
+  const course = courses.find((c: any) => c._id == cid);
   const { pathname } = useLocation();
   return (
     <div id="wd-courses">
