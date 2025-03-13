@@ -21,6 +21,7 @@ export default function Assignments() {
   const { cid } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
   const assignments = useSelector((state: any) => 
     state.assignmentsReducer.assignments.filter((a: any) => a.course === cid)
   );
@@ -45,6 +46,8 @@ export default function Assignments() {
     setAssignmentToDelete(null);
   };
 
+  const isFaculty = currentUser?.role === "FACULTY";
+
   return (
     <div className="container mt-4">
       {/* Top Controls */}
@@ -60,18 +63,22 @@ export default function Assignments() {
           />
         </InputGroup>
 
-        {/* Group Button */}
-        <Button variant="light" className="border">
-          + Group
-        </Button>
+        {/* Group Button - Only visible to faculty */}
+        {isFaculty && (
+          <Button variant="light" className="border">
+            + Group
+          </Button>
+        )}
 
-        {/* Assignment Button */}
-        <Button 
-          variant="danger" 
-          onClick={() => navigate(`/Kambaz/Courses/${cid}/Assignments/new`)}
-        >
-          + Assignment
-        </Button>
+        {/* Assignment Button - Only visible to faculty */}
+        {isFaculty && (
+          <Button 
+            variant="danger" 
+            onClick={() => navigate(`/Kambaz/Courses/${cid}/Assignments/new`)}
+          >
+            + Assignment
+          </Button>
+        )}
       </div>
 
       {/* Assignments Header */}
@@ -122,39 +129,43 @@ export default function Assignments() {
                 </div>
               </div>
 
-              {/* Right Side: Control Buttons */}
-              <div className="d-flex align-items-center gap-2">
-                <ModuleControlButtons />
-                <Button
-                  variant="link"
-                  className="text-danger p-0"
-                  onClick={() => handleDeleteClick(assignment._id)}
-                >
-                  <BsTrash />
-                </Button>
-              </div>
+              {/* Right Side: Control Buttons - Only visible to faculty */}
+              {isFaculty && (
+                <div className="d-flex align-items-center gap-2">
+                  <ModuleControlButtons />
+                  <Button
+                    variant="link"
+                    className="text-danger p-0"
+                    onClick={() => handleDeleteClick(assignment._id)}
+                  >
+                    <BsTrash />
+                  </Button>
+                </div>
+              )}
             </ListGroup.Item>
           ))}
         </ListGroup>
       </Card>
 
-      {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={handleDeleteCancel}>
-        <Modal.Header closeButton>
-          <Modal.Title>Delete Assignment</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to delete this assignment? This action cannot be undone.
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleDeleteCancel}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDeleteConfirm}>
-            Delete
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* Delete Confirmation Modal - Only shown to faculty */}
+      {isFaculty && (
+        <Modal show={showDeleteModal} onHide={handleDeleteCancel}>
+          <Modal.Header closeButton>
+            <Modal.Title>Delete Assignment</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Are you sure you want to delete this assignment? This action cannot be undone.
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleDeleteCancel}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDeleteConfirm}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </div>
   );
 }

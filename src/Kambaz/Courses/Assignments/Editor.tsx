@@ -11,8 +11,16 @@ export default function AssignmentEditor() {
   const { cid, aid } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
   const assignments = useSelector((state: any) => state.assignmentsReducer.assignments);
   const existingAssignment = aid ? assignments.find((a: Assignment) => a._id === aid) : null;
+
+  // Redirect non-faculty users
+  useEffect(() => {
+    if (currentUser?.role !== "FACULTY") {
+      navigate(`/Kambaz/Courses/${cid}/Assignments`);
+    }
+  }, [currentUser, navigate, cid]);
 
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: "",
@@ -53,6 +61,11 @@ export default function AssignmentEditor() {
 
     navigate(`/Kambaz/Courses/${cid}/Assignments`);
   };
+
+  // Don't render the form if user is not faculty
+  if (currentUser?.role !== "FACULTY") {
+    return null;
+  }
 
   return (
     <Container className="mt-4">
