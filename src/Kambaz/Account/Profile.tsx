@@ -1,5 +1,6 @@
 
 import { Form, Button } from "react-bootstrap";
+import * as client from "./client";
 import {  useNavigate }
   from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -17,10 +18,17 @@ export default function Profile() {
         return navigate("/Kambaz/Account/Signin");
       setProfile(currentUser);
     };
-    const signout = () => {
+    const updateProfile = async () => {
+      const updatedProfile = await client.updateUser(profile);
+      dispatch(setCurrentUser(updatedProfile));
+    };
+  
+    const signout = async () => {
+      await client.signout();
       dispatch(setCurrentUser(null));
       navigate("/Kambaz/Account/Signin");
     };
+  
     useEffect(() => { fetchProfile(); }, []);
   
   return (
@@ -97,6 +105,7 @@ export default function Profile() {
       <option value="STUDENT">Student</option>
     </Form.Select>
   </Form.Group>
+  <button onClick={updateProfile} className="btn btn-primary w-100 mb-2"> Update </button>
   <Button variant="danger" className="w-100" onClick={signout}>
     Signout
   </Button>

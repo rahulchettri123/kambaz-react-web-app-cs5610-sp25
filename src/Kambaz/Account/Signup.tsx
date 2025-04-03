@@ -1,27 +1,30 @@
-import { Link } from "react-router-dom";
-import { Form, Button, Container } from "react-bootstrap";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import * as client from "./client";
+import { useDispatch } from "react-redux";
+import { setCurrentUser } from "./reducer";
+import { FormControl } from "react-bootstrap";
 
 export default function Signup() {
+  const [user, setUser] = useState<any>({});
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const signup = async () => {
+    const currentUser = await client.signup(user);
+    dispatch(setCurrentUser(currentUser));
+    navigate("/Kambaz/Account/Profile");
+  };
+
   return (
-    <Container className="d-flex flex-column align-items-center mt-5">
-      <h3 className="mb-3">Signup</h3>
-      <Form className="w-100" style={{ maxWidth: "350px" }}>
-        <Form.Group className="mb-3">
-          <Form.Control type="text" placeholder="username" />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Control type="password" placeholder="password" />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Control type="password" placeholder="verify password" />
-        </Form.Group>
-        <Button variant="primary" className="w-100">
-          Sign up
-        </Button>
-      </Form>
-      <Link to="/Kambaz/Account/Signin" className="mt-3">
-        Sign in
-      </Link>
-    </Container>
+    <div className="wd-signup-screen">
+      <h1>Sign up</h1>
+      <FormControl value={user.username} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUser({ ...user, username: e.target.value })}
+             className="wd-username b-2" placeholder="username" />
+      <FormControl value={user.password} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUser({ ...user, password: e.target.value })}
+             className="wd-password mb-2" placeholder="password" type="password"/>
+      <button onClick={signup} className="wd-signup-btn btn btn-primary mb-2 w-100"> Sign up </button><br />
+      
+    </div>
   );
 }

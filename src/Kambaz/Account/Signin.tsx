@@ -4,15 +4,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { setCurrentUser } from "./reducer";
 import { useDispatch } from "react-redux";
-import {db} from "../Database";
+// import {db} from "../Database";
+import * as client from "./client";
 export default function Signin() {
   const [credentials, setCredentials] = useState<any>({});
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const signin = () => {
-    const user = db.users.find(
-      (u) => u.username === credentials.username &&
-                  u.password === credentials.password);
+  const signin = async () => {
+    const user =  await client.signin(credentials);
+      
     if (!user) {
       alert("Invalid credentials");
     }else{

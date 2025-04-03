@@ -6,21 +6,45 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addAssignment, updateAssignment } from "./reducer";
 import { Assignment } from "./reducer";
+import * as client from "./client";
 
 export default function AssignmentEditor() {
   const { cid, aid } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state: any) => state.accountReducer);
-  const assignments = useSelector((state: any) => state.assignmentsReducer.assignments);
-  const existingAssignment = aid ? assignments.find((a: Assignment) => a._id === aid) : null;
+  const [existingAssignment, setExistingAssignment] = useState<Assignment | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Redirect non-faculty users
   useEffect(() => {
-    if (currentUser?.role !== "FACULTY") {
+    if (currentUser?.role !== "FACULTY" && currentUser?.role !== "ADMIN") {
       navigate(`/Kambaz/Courses/${cid}/Assignments`);
     }
   }, [currentUser, navigate, cid]);
+
+  // Fetch assignment if editing
+  useEffect(() => {
+    const fetchAssignment = async () => {
+      if (aid && aid !== "new") {
+        try {
+          setLoading(true);
+          setError(null);
+          const assignment = await client.findAssignmentById(aid);
+          setExistingAssignment(assignment);
+          setFormData(assignment);
+        } catch (error) {
+          console.error("Error fetching assignment:", error);
+          setError("Failed to load assignment. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchAssignment();
+  }, [aid]);
 
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: "",
@@ -33,12 +57,6 @@ export default function AssignmentEditor() {
     submissionType: "Online",
   });
 
-  useEffect(() => {
-    if (existingAssignment) {
-      setFormData(existingAssignment);
-    }
-  }, [existingAssignment]);
-
   const assignToOptions = [{ value: "everyone", label: "Everyone" }];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -46,29 +64,52 @@ export default function AssignmentEditor() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const assignmentData: Assignment = {
-      ...formData as Assignment,
-      _id: existingAssignment?._id || Date.now().toString(),
-    };
+    try {
+      setSaveLoading(true);
+      setError(null);
+      
+      if (existingAssignment) {
+        // Update existing assignment
+        const updatedAssignment = await client.updateAssignment(
+          existingAssignment._id, 
+          { ...formData }
+        );
+        dispatch(updateAssignment(updatedAssignment));
+      } else {
+        // Create new assignment
+        const newAssignment = await client.createAssignment({
+          ...formData,
+          course: cid
+        });
+        dispatch(addAssignment(newAssignment));
+      }
 
-    if (existingAssignment) {
-      dispatch(updateAssignment(assignmentData));
-    } else {
-      dispatch(addAssignment(assignmentData));
+      navigate(`/Kambaz/Courses/${cid}/Assignments`);
+    } catch (error) {
+      console.error("Error saving assignment:", error);
+      setError("Failed to save assignment. Please try again.");
+    } finally {
+      setSaveLoading(false);
     }
-
-    navigate(`/Kambaz/Courses/${cid}/Assignments`);
   };
 
-  // Don't render the form if user is not faculty
-  if (currentUser?.role !== "FACULTY") {
+  // Don't render the form if user is not faculty or admin
+  if (currentUser?.role !== "FACULTY" && currentUser?.role !== "ADMIN") {
     return null;
+  }
+
+  if (loading) {
+    return <div className="p-5 text-center">Loading assignment...</div>;
   }
 
   return (
     <Container className="mt-4">
+      {error && (
+        <div className="alert alert-danger">{error}</div>
+      )}
+      
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
           <Form.Label>Assignment Name</Form.Label>
@@ -193,11 +234,16 @@ export default function AssignmentEditor() {
           <Button 
             variant="secondary" 
             onClick={() => navigate(`/Kambaz/Courses/${cid}/Assignments`)}
+            disabled={saveLoading}
           >
             Cancel
           </Button>
-          <Button variant="danger" type="submit">
-            Save
+          <Button 
+            variant="danger" 
+            type="submit"
+            disabled={saveLoading}
+          >
+            {saveLoading ? "Saving..." : "Save"}
           </Button>
         </div>
       </Form>
