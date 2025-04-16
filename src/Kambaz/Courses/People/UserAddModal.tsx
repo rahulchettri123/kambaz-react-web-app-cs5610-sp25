@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { Modal, Button, Form, Tab, Tabs, ListGroup } from "react-bootstrap";
 import * as client from "./client";
 import { FaUserPlus, FaCheck } from "react-icons/fa";
@@ -73,7 +73,7 @@ export default function UserAddModal({
   }, [searchTerm, existingUsers]);
   
   // Handle new user form changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: ChangeEvent<any>) => {
     const { name, value } = e.target;
     setNewUser(prev => ({
       ...prev,
@@ -106,7 +106,7 @@ export default function UserAddModal({
                 type="text" 
                 placeholder="Search by name or username"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e: ChangeEvent<any>) => setSearchTerm(e.target.value)}
               />
             </Form.Group>
             
