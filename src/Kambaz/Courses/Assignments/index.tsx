@@ -70,7 +70,7 @@ export default function Assignments() {
     setAssignmentToDelete(null);
   };
 
-  const isFaculty = currentUser?.role === "FACULTY" || currentUser?.role === "ADMIN";
+  const isFacultyOrAdmin = currentUser?.role === "FACULTY" || currentUser?.role === "ADMIN";
 
   if (loading) {
     return <div className="p-5 text-center">Loading assignments...</div>;
@@ -91,15 +91,15 @@ export default function Assignments() {
           />
         </InputGroup>
 
-        {/* Group Button - Only visible to faculty */}
-        {isFaculty && (
+        {/* Group Button - Only visible to faculty and admin */}
+        {isFacultyOrAdmin && (
           <Button variant="light" className="border">
             + Group
           </Button>
         )}
 
-        {/* Assignment Button - Only visible to faculty */}
-        {isFaculty && (
+        {/* Assignment Button - Only visible to faculty and admin */}
+        {isFacultyOrAdmin && (
           <Button 
             variant="danger" 
             onClick={() => navigate(`/Kambaz/Courses/${cid}/Assignments/new`)}
@@ -112,7 +112,7 @@ export default function Assignments() {
       {assignments.length === 0 ? (
         <div className="alert alert-info">
           No assignments found for this course.
-          {isFaculty && (
+          {isFacultyOrAdmin && (
             <div className="mt-2">
               <Button 
                 variant="primary" 
@@ -172,8 +172,8 @@ export default function Assignments() {
                   </div>
                 </div>
 
-                {/* Right Side: Control Buttons - Only visible to faculty */}
-                {isFaculty && (
+                {/* Right Side: Control Buttons - Only visible to faculty and admin */}
+                {isFacultyOrAdmin && (
                   <div className="d-flex align-items-center gap-2">
                     <ModuleControlButtons />
                     <Button
@@ -191,8 +191,8 @@ export default function Assignments() {
         </Card>
       )}
 
-      {/* Delete Confirmation Modal - Only shown to faculty */}
-      {isFaculty && (
+      {/* Delete Confirmation Modal - Only shown to faculty and admin */}
+      {isFacultyOrAdmin && (
         <Modal show={showDeleteModal} onHide={handleDeleteCancel}>
           <Modal.Header closeButton>
             <Modal.Title>Delete Assignment</Modal.Title>

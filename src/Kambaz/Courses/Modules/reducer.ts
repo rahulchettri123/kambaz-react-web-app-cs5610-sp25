@@ -7,18 +7,12 @@ const modulesSlice = createSlice({
   name: "modules",
   initialState,
   reducers: {
-    setModules: (state, action) => {
-      state.modules = action.payload;
+    setModules: (state, { payload: modules }) => {
+      state.modules = modules;
     },
-
+ 
     addModule: (state, { payload: module }) => {
-      const newModule: any = {
-        _id: new Date().getTime().toString(),
-        lessons: [],
-        name: module.name,
-        course: module.course,
-      };
-      state.modules = [...state.modules, newModule] as any;
+      state.modules = [...state.modules, module] as any;
     },
     deleteModule: (state, { payload: moduleId }) => {
       state.modules = state.modules.filter((m: any) => m._id !== moduleId);
@@ -33,10 +27,22 @@ const modulesSlice = createSlice({
       state.modules = state.modules.map((m: any) =>
         m._id === moduleId ? { ...m, editing: true } : m
       ) as any;
+      
+    },
+    addLesson: (state, { payload }) => {
+      const { moduleId, lesson } = payload;
+      state.modules = state.modules.map((m: any) => {
+        if (m._id === moduleId) {
+          // Add the new lesson to the module
+          const updatedLessons = m.lessons ? [...m.lessons, lesson] : [lesson];
+          return { ...m, lessons: updatedLessons };
+        }
+        return m;
+      }) as any;
     },
   },
 });
 
-export const { addModule, deleteModule, updateModule, editModule ,setModules } =
+export const { addModule, deleteModule, updateModule, editModule, setModules, addLesson } =
   modulesSlice.actions;
 export default modulesSlice.reducer;

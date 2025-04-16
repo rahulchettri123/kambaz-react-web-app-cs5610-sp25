@@ -2,7 +2,7 @@ import { Button, Card, Col, Row, Modal } from "react-bootstrap";
 import { Link} from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
-import { addEnrollment, removeEnrollment, setEnrollments } from "./Courses/Enrollments/reducer";
+import { addEnrollment, setEnrollments } from "./Courses/Enrollments/reducer";
 import * as enrollmentClient from "./Courses/Enrollments/client";
 import * as courseClient from "./Courses/client";
 
@@ -13,6 +13,8 @@ export default function Dashboard({
   course,
   setCourse,
   updateCourse,
+  enrolling, setEnrolling,
+  updateEnrollment
 }: {
   addNewCourse: () => void;
   deleteCourse: (id: string) => void;
@@ -20,6 +22,8 @@ export default function Dashboard({
   course: any;
   setCourse: (course: any) => void;
   updateCourse: (id: string) => void;
+  enrolling: boolean; setEnrolling: (enrolling: boolean) => void;
+  updateEnrollment: (courseId: string, enrolled: boolean) => void 
 }) {
   
   const dispatch = useDispatch();
@@ -91,10 +95,20 @@ export default function Dashboard({
   }
 
   const isEnrolled = (courseId: string) => {
-    return enrollments.some(
-      (enrollment: any) =>
-        enrollment.user === currentUser._id && enrollment.course === courseId
+    // Check both the enrollment data from API and the course.enrolled flag
+    const enrollmentExists = enrollments.some(
+      (enrollment: any) => 
+        // Check both enrollment structure types
+        (enrollment.user === currentUser._id && enrollment.course === courseId) ||
+        (enrollment._id === `${currentUser._id}-${courseId}`)
     );
+    
+    // Also check if the course itself has the enrolled flag
+    const courseHasEnrolledFlag = courses.find(
+      (c: any) => c._id === courseId && c.enrolled === true
+    );
+    
+    return enrollmentExists || !!courseHasEnrolledFlag;
   };
 
   const handleEnroll = async (courseId: string) => {
@@ -106,15 +120,6 @@ export default function Dashboard({
       dispatch(addEnrollment(newEnrollment));
     } catch (error) {
       console.error("Error enrolling in course:", error);
-    }
-  };
-
-  const handleUnenroll = async (enrollmentId: string) => {
-    try {
-      await enrollmentClient.unenrollUserFromCourse(enrollmentId);
-      dispatch(removeEnrollment(enrollmentId));
-    } catch (error) {
-      console.error("Error unenrolling from course:", error);
     }
   };
 
@@ -162,6 +167,9 @@ export default function Dashboard({
   return (
     <div id="wd-dashboard">
       <h1 id="wd-dashboard-title">Dashboard {currentUser.username}</h1> <hr />
+      <button onClick={() => setEnrolling(!enrolling)} className="float-end btn btn-primary" >
+          {enrolling ? "My Courses" : "All Courses"}
+        </button>
 
       {/* Course Management Section - Only visible to Faculty and Admin */}
       {isFacultyOrAdmin && (
@@ -199,7 +207,7 @@ export default function Dashboard({
 
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 id="wd-dashboard-published">
-          {currentUser.role === "FACULTY" 
+          {currentUser.role === "FACULTY" || currentUser.role === "ADMIN"
             ? "All Courses" 
             : (showAllCourses ? "All Courses" : "Enrolled Courses")} ({sortedCourses.length})
         </h2>
@@ -298,6 +306,17 @@ export default function Dashboard({
                       {course.description}
                     </Card.Text>
                     <div className="d-flex justify-content-between align-items-center">
+                      {enrolling && (
+                        <button 
+                          className={`btn ${course.enrolled ? "btn-danger" : "btn-success"} float-end`}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            updateEnrollment(course._id, !course.enrolled);
+                          }}
+                        >
+                          {course.enrolled ? "Unenroll" : "Enroll"}
+                        </button>
+                      )}
                       {(isEnrolled(course._id) || isFacultyOrAdmin) ? (
                         <>
                           <Link
@@ -309,15 +328,9 @@ export default function Dashboard({
                           {currentUser.role === "STUDENT" && isEnrolled(course._id) && (
                             <Button
                               variant="danger"
-                              onClick={() => {
-                                const enrollment = enrollments.find(
-                                  (e: any) =>
-                                    e.user === currentUser._id &&
-                                    e.course === course._id
-                                );
-                                if (enrollment) {
-                                  handleUnenroll(enrollment._id);
-                                }
+                              onClick={(event) => {
+                                event.preventDefault();
+                                updateEnrollment(course._id, false);
                               }}
                             >
                               Unenroll
@@ -328,7 +341,10 @@ export default function Dashboard({
                         currentUser.role === "STUDENT" && !showAllCourses && (
                           <Button
                             variant="success"
-                            onClick={() => handleEnroll(course._id)}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              updateEnrollment(course._id, true);
+                            }}
                           >
                             Enroll
                           </Button>

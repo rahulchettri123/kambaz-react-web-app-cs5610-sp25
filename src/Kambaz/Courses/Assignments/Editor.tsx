@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, Form, Container, Row, Col, InputGroup } from "react-bootstrap";
+import { Button, Form, Container, Row, Col, InputGroup, Card } from "react-bootstrap";
 import { BsCalendar } from "react-icons/bs";
 import Select from "react-select";
 import { useNavigate, useParams } from "react-router-dom";
@@ -17,13 +17,16 @@ export default function AssignmentEditor() {
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Check if user is faculty or admin
+  const isFacultyOrAdmin = currentUser?.role === "FACULTY" || currentUser?.role === "ADMIN";
 
-  // Redirect non-faculty users
+  // Only redirect if creating a new assignment (non-faculty can view existing assignments)
   useEffect(() => {
-    if (currentUser?.role !== "FACULTY" && currentUser?.role !== "ADMIN") {
+    if (!isFacultyOrAdmin && aid === "new") {
       navigate(`/Kambaz/Courses/${cid}/Assignments`);
     }
-  }, [currentUser, navigate, cid]);
+  }, [currentUser, navigate, cid, aid, isFacultyOrAdmin]);
 
   // Fetch assignment if editing
   useEffect(() => {
@@ -66,6 +69,10 @@ export default function AssignmentEditor() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Only faculty/admin can save changes
+    if (!isFacultyOrAdmin) return;
+    
     try {
       setSaveLoading(true);
       setError(null);
@@ -95,8 +102,8 @@ export default function AssignmentEditor() {
     }
   };
 
-  // Don't render the form if user is not faculty or admin
-  if (currentUser?.role !== "FACULTY" && currentUser?.role !== "ADMIN") {
+  // Don't render the form if attempting to create a new assignment as non-faculty
+  if (!isFacultyOrAdmin && aid === "new") {
     return null;
   }
 
@@ -104,6 +111,60 @@ export default function AssignmentEditor() {
     return <div className="p-5 text-center">Loading assignment...</div>;
   }
 
+  // Student view (read-only)
+  if (!isFacultyOrAdmin && existingAssignment) {
+    return (
+      <Container className="mt-4">
+        <Card>
+          <Card.Header as="h4">{existingAssignment.title}</Card.Header>
+          <Card.Body>
+            <Row className="mb-3">
+              <Col md={4}>
+                <h5>Points</h5>
+                <p>{existingAssignment.points}</p>
+              </Col>
+              <Col md={4}>
+                <h5>Submission Type</h5>
+                <p>{existingAssignment.submissionType}</p>
+              </Col>
+              <Col md={4}>
+                <h5>Due Date</h5>
+                <p>{new Date(existingAssignment.dueDate).toLocaleString()}</p>
+              </Col>
+            </Row>
+            
+            <Row className="mb-3">
+              <Col md={6}>
+                <h5>Available From</h5>
+                <p>{new Date(existingAssignment.availableDate).toLocaleString()}</p>
+              </Col>
+              <Col md={6}>
+                <h5>Available Until</h5>
+                <p>{new Date(existingAssignment.availableUntil).toLocaleString()}</p>
+              </Col>
+            </Row>
+            
+            <hr />
+            <h5>Description</h5>
+            <div className="assignment-description">
+              {existingAssignment.description}
+            </div>
+            
+            <div className="d-flex mt-4">
+              <Button 
+                variant="secondary" 
+                onClick={() => navigate(`/Kambaz/Courses/${cid}/Assignments`)}
+              >
+                Back to Assignments
+              </Button>
+            </div>
+          </Card.Body>
+        </Card>
+      </Container>
+    );
+  }
+
+  // Faculty/admin edit view
   return (
     <Container className="mt-4">
       {error && (

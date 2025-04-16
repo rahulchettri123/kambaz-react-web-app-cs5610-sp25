@@ -10,8 +10,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const enrollments = useSelector((state: any) => state.enrollmentsReducer.enrollments);
 
-  // Allow access if user is faculty
-  if (currentUser?.role === 'FACULTY') {
+  // Allow access if user is faculty or admin
+  if (currentUser?.role === 'FACULTY' || currentUser?.role === 'ADMIN') {
     return <>{children}</>;
   }
 
