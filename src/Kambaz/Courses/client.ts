@@ -1,7 +1,6 @@
 import axios from "axios";
 const REMOTE_SERVER = import.meta.env.VITE_REMOTE_SERVER;
 const axiosWithCredentials = axios.create({
-  baseURL: '',
   withCredentials: true,
 });
 const COURSES_API = `${REMOTE_SERVER}/api/courses`;

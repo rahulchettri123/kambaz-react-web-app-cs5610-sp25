@@ -1,13 +1,8 @@
 import axios from "axios";
 
 const REMOTE_SERVER = import.meta.env.VITE_REMOTE_SERVER;
-// Create axios instance with baseURL to ensure absolute URL resolution
-const axiosWithCredentials = axios.create({ 
-  baseURL: '',  // Empty string to ensure URLs are treated as absolute
-  withCredentials: true 
-});
+const axiosWithCredentials = axios.create({ withCredentials: true });
 const MODULES_API = `${REMOTE_SERVER}/api/modules`;
-
 export const deleteModule = async (moduleId: string) => {
   const response = await axiosWithCredentials.delete(
     `${MODULES_API}/${moduleId}`
