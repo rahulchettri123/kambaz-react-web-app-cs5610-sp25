@@ -4,7 +4,10 @@ import { useSelector } from "react-redux";
 export default function AccountNavigation() {
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const links = currentUser
-    ? [{ label: "Profile", path: "/Kambaz/Account/Profile" }]
+    ? [
+        { label: "Profile", path: "/Kambaz/Account/Profile" },
+        { label: "Debug", path: "/Kambaz/Account/Debug" }
+      ]
     : [
         { label: "Signin", path: "/Kambaz/Account/Signin" },
         { label: "Signup", path: "/Kambaz/Account/Signup" },
