@@ -2,7 +2,7 @@ import { Button, Card, Col, Row, Modal } from "react-bootstrap";
 import { Link} from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
-import { addEnrollment, setEnrollments } from "./Courses/Enrollments/reducer";
+import { setEnrollments } from "./Courses/Enrollments/reducer";
 import * as enrollmentClient from "./Courses/Enrollments/client";
 import * as courseClient from "./Courses/client";
 
@@ -49,7 +49,6 @@ export default function Dashboard({
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const isFacultyOrAdmin = currentUser?.role === "FACULTY" || currentUser?.role === "ADMIN";
   const isAdmin = currentUser?.role === "ADMIN";
-  const isFaculty = currentUser?.role === "FACULTY";
 
   // Fetch enrollments when component mounts
   useEffect(() => {
