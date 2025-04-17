@@ -2,20 +2,6 @@ import axios from "axios";
 const axiosWithCredentials = axios.create({ withCredentials: true });
 export const REMOTE_SERVER = import.meta.env.VITE_REMOTE_SERVER;
 export const USERS_API = `${REMOTE_SERVER}/api/users`;
-
-// Debug function to help diagnose authentication issues
-export const checkAuthStatus = async () => {
-  try {
-    console.log("Checking auth status with server:", REMOTE_SERVER);
-    const response = await axiosWithCredentials.get(`${REMOTE_SERVER}/api/auth-status`);
-    console.log("Auth status response:", response.data);
-    return response.data;
-  } catch (error: any) {
-    console.error("Auth status check failed:", error);
-    return { authenticated: false, error: error.message };
-  }
-};
-
 export const createCourse = async (course: any) => {
   const { data } = await axiosWithCredentials.post(
     `${USERS_API}/current/courses`,

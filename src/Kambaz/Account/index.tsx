@@ -6,7 +6,6 @@ import { useSelector } from "react-redux";
 import { Route, Routes, Navigate } from "react-router-dom";
 import Users from "./Users";
 import AdminRoute from "./AdminRoute";
-import AuthDebugger from "./AuthDebugger";
 
 export default function Account() {
   const { currentUser } = useSelector(
@@ -29,7 +28,6 @@ export default function Account() {
               <Route path="/Signup" element={<Signup />} />
               <Route path="/Users" element={<AdminRoute><Users /></AdminRoute>} />
               <Route path="/Users/:uid" element={<AdminRoute><Users /></AdminRoute>} />
-              <Route path="/Debug" element={<AuthDebugger />} />
             </Routes>
           </td>
         </tr>
