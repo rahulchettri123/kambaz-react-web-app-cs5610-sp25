@@ -79,11 +79,23 @@ export default function AssignmentEditor() {
       
       if (existingAssignment) {
         // Update existing assignment
-        const updatedAssignment = await client.updateAssignment(
-          existingAssignment._id, 
-          { ...formData }
-        );
-        dispatch(updateAssignment(updatedAssignment));
+        try {
+          const updatedAssignment = await client.updateAssignment(
+            existingAssignment._id, 
+            { ...formData }
+          );
+          dispatch(updateAssignment(updatedAssignment));
+          navigate(`/Kambaz/Courses/${cid}/Assignments`);
+        } catch (error: any) {
+          // If the error is because no changes were made, treat it as success
+          if (error?.response?.data?.message === "Assignment not found or not modified") {
+            // No changes were made, but that's okay - treat as success
+            navigate(`/Kambaz/Courses/${cid}/Assignments`);
+          } else {
+            // It's a different error, so throw it to be caught below
+            throw error;
+          }
+        }
       } else {
         // Create new assignment
         const newAssignment = await client.createAssignment({
@@ -91,12 +103,11 @@ export default function AssignmentEditor() {
           course: cid
         });
         dispatch(addAssignment(newAssignment));
+        navigate(`/Kambaz/Courses/${cid}/Assignments`);
       }
-
-      navigate(`/Kambaz/Courses/${cid}/Assignments`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving assignment:", error);
-      setError("Failed to save assignment. Please try again.");
+      setError(error?.response?.data?.message || "Failed to save assignment. Please try again.");
     } finally {
       setSaveLoading(false);
     }

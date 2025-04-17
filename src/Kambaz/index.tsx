@@ -49,6 +49,14 @@ export default function Kambaz() {
     //   }
     // }, [currentUser]);
     const [enrolling, setEnrolling] = useState<boolean>(false);
+    
+    // Set enrolling state based on user role - now only admin has forced "All Courses" view
+    useEffect(() => {
+      if (currentUser?.role === "ADMIN") {
+        setEnrolling(true); // Only admin should always see all courses by default
+      }
+    }, [currentUser]);
+    
     const findCoursesForUser = async () => {
       try {
         const courses = await userClient.findCoursesForUser(currentUser._id);

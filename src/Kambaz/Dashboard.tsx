@@ -6,6 +6,20 @@ import { addEnrollment, setEnrollments } from "./Courses/Enrollments/reducer";
 import * as enrollmentClient from "./Courses/Enrollments/client";
 import * as courseClient from "./Courses/client";
 
+// Update card styling to prevent stretching
+const cardStyle = {
+  marginBottom: "20px",
+  transition: "transform 0.3s ease",
+  minHeight: "400px", // Fixed height instead of 100%
+  display: "flex",
+  flexDirection: "column" as "column"
+};
+
+const cardHoverStyle = {
+  transform: "translateY(-5px)",
+  boxShadow: "0 10px 20px rgba(0,0,0,0.1)"
+};
+
 export default function Dashboard({
   addNewCourse,
   deleteCourse,
@@ -31,8 +45,11 @@ export default function Dashboard({
   const enrollments = useSelector((state: any) => state.enrollmentsReducer.enrollments);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
-  const [showAllCourses, setShowAllCourses] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const isFacultyOrAdmin = currentUser?.role === "FACULTY" || currentUser?.role === "ADMIN";
+  const isAdmin = currentUser?.role === "ADMIN";
+  const isFaculty = currentUser?.role === "FACULTY";
 
   // Fetch enrollments when component mounts
   useEffect(() => {
@@ -78,13 +95,6 @@ export default function Dashboard({
     }
   }, [currentUser, courses]);
 
-  // If the user is a student, default to showing all courses
-  useEffect(() => {
-    if (currentUser?.role === "STUDENT") {
-      setShowAllCourses(true);
-    }
-  }, [currentUser]);
-
   // Log courses for debugging
   useEffect(() => {
     console.log("Courses updated:", courses.length);
@@ -111,18 +121,6 @@ export default function Dashboard({
     return enrollmentExists || !!courseHasEnrolledFlag;
   };
 
-  const handleEnroll = async (courseId: string) => {
-    try {
-      const newEnrollment = await enrollmentClient.enrollUserInCourse(
-        currentUser._id, 
-        courseId
-      );
-      dispatch(addEnrollment(newEnrollment));
-    } catch (error) {
-      console.error("Error enrolling in course:", error);
-    }
-  };
-
   const handleDeleteClick = (courseId: string) => {
     setCourseToDelete(courseId);
     setShowDeleteModal(true);
@@ -141,15 +139,15 @@ export default function Dashboard({
     setCourseToDelete(null);
   };
 
-  // Filter courses based on user role and showAllCourses state
-  const isFacultyOrAdmin = currentUser.role === "FACULTY" || currentUser.role === "ADMIN";
-  const filteredCourses = isFacultyOrAdmin || showAllCourses
-    ? courses 
-    : courses.filter((course) => isEnrolled(course._id));
-
-  // Sort courses so that available courses (not enrolled) appear first for students
+  // Filter courses based on user role and enrolling state
+  // Faculty/Admin see all courses, Students see either all courses or just enrolled courses based on enrolling state
+  const filteredCourses = isFacultyOrAdmin || enrolling
+    ? courses // Show all courses for faculty/admin or when "All Courses" is selected
+    : courses.filter((course) => isEnrolled(course._id)); // Show only enrolled courses when "My Courses" is selected
+  
+  // When showing all courses for students, sort available courses first
   const sortedCourses = [...filteredCourses].sort((a, b) => {
-    if (currentUser.role === "STUDENT") {
+    if ((currentUser.role === "STUDENT" || currentUser.role === "FACULTY") && enrolling) {
       const aEnrolled = isEnrolled(a._id);
       const bEnrolled = isEnrolled(b._id);
       
@@ -166,32 +164,40 @@ export default function Dashboard({
 
   return (
     <div id="wd-dashboard">
-      <h1 id="wd-dashboard-title">Dashboard {currentUser.username}</h1> <hr />
-      <button onClick={() => setEnrolling(!enrolling)} className="float-end btn btn-primary" >
-          {enrolling ? "My Courses" : "All Courses"}
-        </button>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h1 id="wd-dashboard-title">Dashboard {currentUser.username}</h1>
+        
+        {/* Only show the toggle button for students and faculty, not for admin */}
+        {(currentUser.role === "STUDENT" || currentUser.role === "FACULTY") && (
+          <button onClick={() => setEnrolling(!enrolling)} className="btn btn-primary">
+            {enrolling ? "My Courses" : "All Courses"}
+          </button>
+        )}
+      </div>
+      <hr />
 
-      {/* Course Management Section - Only visible to Faculty and Admin */}
+      {/* Course Management Section - Visible to both Faculty and Admin */}
       {isFacultyOrAdmin && (
-        <div>
-          <h5>
-            New Course
-            <button className="btn btn-primary float-end" onClick={addNewCourse}>
-              {" "}
-              Add{" "}
-            </button>
-            <Button
-              variant="success"
-              className="float-end me-2"
-              onClick={() => updateCourse(course._id)}
-            >
-              Save
-            </Button>
-          </h5>
+        <div className="mb-4 p-3 border rounded bg-light">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="m-0">New Course</h5>
+            <div className="d-flex gap-2">
+              <Button
+                variant="success"
+                onClick={() => updateCourse(course._id)}
+              >
+                Save
+              </Button>
+              <button className="btn btn-primary" onClick={addNewCourse}>
+                Add
+              </button>
+            </div>
+          </div>
           <input
-            className="form-control"
+            className="form-control mb-2"
             value={course.name}
             onChange={(e) => setCourse({ ...course, name: e.target.value })}
+            placeholder="Course Name"
           />
           <textarea
             value={course.description}
@@ -199,40 +205,38 @@ export default function Dashboard({
             onChange={(e) =>
               setCourse({ ...course, description: e.target.value })
             }
+            placeholder="Course Description"
+            rows={3}
           />
         </div>
       )}
 
-      <br />
-
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 id="wd-dashboard-published">
-          {currentUser.role === "FACULTY" || currentUser.role === "ADMIN"
+          {isAdmin
             ? "All Courses" 
-            : (showAllCourses ? "All Courses" : "Enrolled Courses")} ({sortedCourses.length})
+            : (enrolling ? "All Courses" : "My Courses")} ({sortedCourses.length})
         </h2>
-        {currentUser.role === "STUDENT" && (
-          <Button
-            variant="primary"
-            onClick={() => setShowAllCourses(!showAllCourses)}
-          >
-            {showAllCourses ? "Show Enrolled" : "Show All"}
-          </Button>
-        )}
       </div>
       <hr />
       <div id="wd-dashboard-courses">
-        {currentUser.role === "STUDENT" && showAllCourses && (
+        {/* When showing all courses, separate available and enrolled courses for students and faculty */}
+        {(currentUser.role === "STUDENT" || currentUser.role === "FACULTY") && enrolling && (
           <>
             <h3 className="mb-3 text-success">
               Available for Enrollment ({sortedCourses.filter(course => !isEnrolled(course._id)).length})
             </h3>
-            <Row xs={1} md={5} className="g-4 mb-4">
+            <Row className="g-4 mb-4">
               {sortedCourses
                 .filter(course => !isEnrolled(course._id))
                 .map((course) => (
-                  <Col key={course._id} className="wd-dashboard-course" style={{ width: "300px" }}>
-                    <Card className="h-100 border-success">
+                  <Col key={course._id} xs={12} md={6} lg={4} className="wd-dashboard-course">
+                    <Card 
+                      className="border-success" 
+                      style={hoveredCard === course._id ? {...cardStyle, ...cardHoverStyle} : cardStyle}
+                      onMouseEnter={() => setHoveredCard(course._id)}
+                      onMouseLeave={() => setHoveredCard(null)}
+                    >
                       <Card.Img
                         variant="top"
                         width="100%"
@@ -242,23 +246,42 @@ export default function Dashboard({
                       <span className="position-absolute top-0 end-0 m-2 badge bg-success">
                         Available
                       </span>
-                      <Card.Body>
+                      <Card.Body style={{ flex: 1 }}>
                         <Card.Title className="wd-dashboard-course-title text-nowrap overflow-hidden">
                           {course.name}
                         </Card.Title>
                         <Card.Text
-                          className="wd-dashboard-course-description overflow-hidden"
+                          className="wd-dashboard-course-description overflow-hidden mb-4"
                           style={{ height: "75px" }}
                         >
                           {course.description}
                         </Card.Text>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <Button
-                            variant="success"
-                            onClick={() => handleEnroll(course._id)}
-                          >
-                            Enroll
-                          </Button>
+                        <div className="mt-auto">
+                          <div className="d-flex justify-content-between align-items-center">
+                            <Button
+                              variant="success"
+                              onClick={() => updateEnrollment(course._id, true)}
+                            >
+                              Enroll
+                            </Button>
+                            {isFacultyOrAdmin && (
+                              <div className="d-flex gap-2">
+                                <Button
+                                  variant="warning"
+                                  id="wd-edit-course-click"
+                                  onClick={() => setCourse(course)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="danger"
+                                  onClick={() => handleDeleteClick(course._id)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </Card.Body>
                     </Card>
@@ -272,20 +295,25 @@ export default function Dashboard({
           </>
         )}
         
-        <Row xs={1} md={5} className="g-4">
-          {(currentUser.role === "STUDENT" && showAllCourses
+        <Row className="g-4">
+          {((currentUser.role === "STUDENT" || currentUser.role === "FACULTY") && enrolling
               ? sortedCourses.filter(course => isEnrolled(course._id))
               : sortedCourses
             ).map((course) => (
-              <Col key={course._id} className="wd-dashboard-course" style={{ width: "300px" }}>
-                <Card className={isEnrolled(course._id) ? "h-100 border-primary" : "h-100"}>
+              <Col key={course._id} xs={12} md={6} lg={4} className="wd-dashboard-course">
+                <Card 
+                  className={isEnrolled(course._id) ? "border-primary" : ""}
+                  style={hoveredCard === course._id ? {...cardStyle, ...cardHoverStyle} : cardStyle}
+                  onMouseEnter={() => setHoveredCard(course._id)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
                   <Card.Img
                     variant="top"
                     width="100%"
                     src="/images/reactjs.jpg"
                     height={160}
                   />
-                  {!isEnrolled(course._id) && currentUser.role === "STUDENT" && !showAllCourses && (
+                  {!isEnrolled(course._id) && (currentUser.role === "STUDENT" || currentUser.role === "FACULTY") && !enrolling && (
                     <span className="position-absolute top-0 end-0 m-2 badge bg-success">
                       Available
                     </span>
@@ -295,37 +323,43 @@ export default function Dashboard({
                       Enrolled
                     </span>
                   )}
-                  <Card.Body>
+                  <Card.Body style={{ flex: 1 }}>
                     <Card.Title className="wd-dashboard-course-title text-nowrap overflow-hidden">
                       {course.name}
                     </Card.Title>
                     <Card.Text
-                      className="wd-dashboard-course-description overflow-hidden"
+                      className="wd-dashboard-course-description overflow-hidden mb-4"
                       style={{ height: "75px" }}
                     >
                       {course.description}
                     </Card.Text>
-                    <div className="d-flex justify-content-between align-items-center">
-                      {enrolling && (
-                        <button 
-                          className={`btn ${course.enrolled ? "btn-danger" : "btn-success"} float-end`}
-                          onClick={(event) => {
-                            event.preventDefault();
-                            updateEnrollment(course._id, !course.enrolled);
-                          }}
-                        >
-                          {course.enrolled ? "Unenroll" : "Enroll"}
-                        </button>
-                      )}
-                      {(isEnrolled(course._id) || isFacultyOrAdmin) ? (
-                        <>
-                          <Link
-                            to={`/Kambaz/Courses/${course._id}/Home`}
-                            className="text-decoration-none"
-                          >
-                            <Button variant="primary">Go</Button>
-                          </Link>
-                          {currentUser.role === "STUDENT" && isEnrolled(course._id) && (
+                    <div className="mt-auto">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                          {(isEnrolled(course._id) || isFacultyOrAdmin) ? (
+                            <Link
+                              to={`/Kambaz/Courses/${course._id}/Home`}
+                              className="text-decoration-none"
+                            >
+                              <Button variant="primary">Go</Button>
+                            </Link>
+                          ) : (
+                            (currentUser.role === "STUDENT" || currentUser.role === "FACULTY") && !enrolling && (
+                              <Button
+                                variant="success"
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  updateEnrollment(course._id, true);
+                                }}
+                              >
+                                Enroll
+                              </Button>
+                            )
+                          )}
+                        </div>
+                        
+                        <div className="d-flex gap-2">
+                          {(currentUser.role === "STUDENT" || currentUser.role === "FACULTY") && isEnrolled(course._id) && (
                             <Button
                               variant="danger"
                               onClick={(event) => {
@@ -336,37 +370,26 @@ export default function Dashboard({
                               Unenroll
                             </Button>
                           )}
-                        </>
-                      ) : (
-                        currentUser.role === "STUDENT" && !showAllCourses && (
-                          <Button
-                            variant="success"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              updateEnrollment(course._id, true);
-                            }}
-                          >
-                            Enroll
-                          </Button>
-                        )
-                      )}
-                      {isFacultyOrAdmin && (
-                        <>
-                          <Button
-                            variant="danger"
-                            onClick={() => handleDeleteClick(course._id)}
-                          >
-                            Delete
-                          </Button>
-                          <Button
-                            variant="warning"
-                            id="wd-edit-course-click"
-                            onClick={() => setCourse(course)}
-                          >
-                            Edit
-                          </Button>
-                        </>
-                      )}
+                          
+                          {isFacultyOrAdmin && (
+                            <>
+                              <Button
+                                variant="warning"
+                                id="wd-edit-course-click"
+                                onClick={() => setCourse(course)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="danger"
+                                onClick={() => handleDeleteClick(course._id)}
+                              >
+                                Delete
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </Card.Body>
                 </Card>
