@@ -1,7 +1,13 @@
 import axios from "axios";
-const axiosWithCredentials = axios.create({ withCredentials: true });
 export const REMOTE_SERVER = import.meta.env.VITE_REMOTE_SERVER;
 export const USERS_API = `${REMOTE_SERVER}/api/users`;
+
+// Create axios instance with baseURL to ensure absolute URL resolution
+const axiosWithCredentials = axios.create({ 
+  baseURL: '',  // Empty string to ensure URLs are treated as absolute
+  withCredentials: true 
+});
+
 export const createCourse = async (course: any) => {
   const { data } = await axiosWithCredentials.post(
     `${USERS_API}/current/courses`,

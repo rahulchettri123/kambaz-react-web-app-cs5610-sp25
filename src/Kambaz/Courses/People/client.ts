@@ -1,7 +1,11 @@
 import axios from "axios";
 
 const REMOTE_SERVER = import.meta.env.VITE_REMOTE_SERVER;
-const axiosWithCredentials = axios.create({ withCredentials: true });
+// Create axios instance with baseURL to ensure absolute URL resolution
+const axiosWithCredentials = axios.create({ 
+  baseURL: '',  // Empty string to ensure URLs are treated as absolute
+  withCredentials: true 
+});
 const COURSES_API = `${REMOTE_SERVER}/api/courses`;
 const USERS_API = `${REMOTE_SERVER}/api/users`;
 
